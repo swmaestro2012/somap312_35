@@ -1,0 +1,3 @@
+
+.. automodule:: watermelon.user
+   :members:

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+	{% block sidebar %}
+    <li><a href="#_=_">overview</a></li>
+    <li><a href="/">Search</a></li>
+    {% if 'logged_in' in session %}
+    {% for list in lists %}
+    <li><a href="/list/?n={{ list.name }}">list - {{ list.name }}</a></li>
+    {% endfor %}
+    <li><a href="/logout/">Logout</a></li>
+    {% else %}
+    <li><a href="/login/">Login</a></li>                                 
+    {% endif %}
+    {% endblock %}
+	{% block contents %}
+    <div class="container">
+		<div class="page" data-id="_=_">
+    		<div class="pgContent" >
+            	<form name="contact" action="/search/" method="get" >
+                	<input type="hidden" name="c" value="{{ category }}" />
+                    <input type="text" value="Name" id="name" name="q"  
+                    onfocus="if(this.value == 'Name') {this.value = '';}"	
+                    onblur="if (this.value == '') {this.value = 'Name';}" />
+                    <hr>                                  
+                    <button type="submit" class="button alignLeft">Search</button>                                                             
+                </form>
+                <hr>
+        		<div class="mobile_spacing">
+            		<h1 class="title_light">Overview</h1>
+        		</div>
+        		<div class="separator_mini">
+                	<ul class="tabs">
+                        <li><a href="/search/?c=track&q={{ keyword }}#_=_">Track</a></li>
+                        <li><a href="/search/?c=artist&q={{ keyword }}#_=_">Artist</a></li>
+                        <li><a href="#" class="active">Album</a></li>
+                    </ul>
+                    <ul class="tabs-content">
+                    	<li id="album" class="active">
+                            <div class="seven columns alpha ">
+                                <div class="mobile_right_spacing">
+                                        <img id="main_picture" src="" width="200px" height="auto" />
+                                        <h4  style="float:right;" class="title_light">{{ results['main'].title }}<br />
+                                        artist:<a href="/overview/?c=artist&q={{ results['main'].id[-36:] }}">{{ results['main'].artist.name }}</a></h4>
+                                    <hr>
+                                	<a id="playAll">전체 재생</a>
+                                    <table border='1'>
+                                        <tr>
+                                                <td><h4 class="title_light">Tracks</h4></td>
+                                        </tr>
+                                        <tr>	
+                                        		<td></td>
+                                                <td><h4 class="title_light">name</h4></td>
+                                                <td><h4 class="title_light">time</h4></td>
+                                                <td></td>
+                                                <td></td>
+                                        </tr>
+                                    {% for track in results['another']['tracks'] %}
+                                        <tr>
+                                                <td><a class="song" title="{{ track.title }}" mz_id="{{ track.id[-36:] }}">재생</a></td>
+                                                <td><a href="/overview/?c=track&q={{ track.id[-36:] }}">{{ track.title }}</a></td>
+                                                <td>{{ track.duration }}</td>
+                                                <td><a class="currentList">재생 목록에 추가</a></td>
+                                                <td><a data-toggle="modal" href="#windowTitleDialog" class="addList">리스트에 추가</a></td>
+                                        </tr>
+                                    {% endfor %}
+                                    </table>
+                               </div>
+                        	</div>
+                        </li>         
+                    </ul>
+        		</div>
+                <hr />
+        		<div class="separator_mini"></div> 
+			</div>
+		</div>
+	</div>
+	{% endblock %}
+    {% block scripts %}
+        $.get('/get/image/', {keyword:"{{ results['main'].artist.name }} {{ results['main'].title }}", category:'album'}, function(data){
+         	$('#main_picture').attr('src',data);
+        });
+        $('.song').bind('click',function(){
+            var searchValue = '{{ results['main'].artist.name }}'+' '+$(this).attr('title');
+            var mz_id = $(this).attr('mz_id');
+            $('#controller span').html('{{ results['main'].artist.name }}'+' - '+$(this).attr('title'));
+            console.log(mz_id)
+            console.log(searchValue);
+            $.get('/get/id/', {id:mz_id, q:searchValue}, function(data){
+            	$('#youtube-player-container').tubeplayer('play', data);
+            });
+            $.get('/get/image/', {keyword:searchValue, category:'album'}, function(data){
+              $('#controller img').eq(3).attr('src',data);
+			  $.vegas({src:data})('overlay', { src:'/static/img/background_overlay.png'});
+            });
+        });
+        
+		$('.currentList').bind('click', function(){
+        	var key = $(this).parent().parent().find('.song').attr('mz_id');
+			var value = '{{ results['main'].artist.name }}'+' - '+$(this).parent().parent().find('.song').attr('title');
+            if($.cookie('currentlist') == null){
+            	$.cookie('currentlist','{"'+key+'": "'+value+'"}');
+            }else{
+            	var cookie_value = '';
+                if($.cookie('currentlist') == '{}'){
+	            	cookie_value = $.cookie('currentlist').replace('}','"'+key+'": "'+value+'"}');
+                }else{
+	            	cookie_value = $.cookie('currentlist').replace('}',', "'+key+'": "'+value+'"}');
+    	        }
+                $.cookie('currentlist', cookie_value);
+            }
+            alert('재생 목록에 추가되었습니다.');
+        });
+		$('.addList').bind('click', function(){
+        	var key = $(this).parent().parent().find('.song').attr('mz_id');
+			var value = '{{ results['main'].artist.name }}'+' - '+$(this).parent().parent().find('.song').attr('title');
+            var json = '{"'+key+'": "'+value+'"}';
+            $('#list').val(json);
+		});
+        
+        $('#playAll').bind('click', function(){
+        	var json = '{'+'{% for track in results['another']['tracks'] %}"{{ track['id'][-36:] }}": "{{ results['main'].artist.name }} - {{ track.title }}",{% endfor %}}';
+            json = json.replace(',}','}');
+            $.cookie('currentlist',json);
+            nextSong();
+        });
+	{% endblock %}

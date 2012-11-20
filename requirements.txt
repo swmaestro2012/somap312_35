@@ -1,0 +1,5 @@
+python-musicbrainz2 == 0.7.2
+gdata == 2.0.17
+Flask == 0.9
+Flask-OAuth == 0.12
+python-memcached == 1.48

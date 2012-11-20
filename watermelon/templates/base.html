@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="utf-8">
+    <title>WaterMelOn</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+
+
+    <link rel="stylesheet" type="text/css"  href="/static/css/main.min.css">
+    <link rel="stylesheet" type="text/css"  href="/static/css/base.min.css">
+    <link rel="stylesheet" type="text/css"  href="/static/css/color.css">
+    <link rel="stylesheet" type="text/css"  href="/static/css/skeleton.min.css">
+    <link rel="stylesheet" type="text/css"  href="/static/css/jquery.fancybox-1.3.4.min.css" media="screen" />
+    <link rel="stylesheet" type="text/css"  href="/static/css/flexslider.min.css" media="screen" />
+    <link rel="stylesheet" type="text/css"  href="/static/css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css"  href="/static/css/bootstrap.css" />
+</head>
+<body>
+	<div id="player">
+    	<div id="controller" align="center">
+        	<a href="javascript:$('#youtube-player-container').tubeplayer('seek',1);"><img src="/static/img/backward.png" /></a>
+        	<a href="javascript:pause();"><img src="/static/img/play.png" /></a>
+        	<a href="javascript:$('#youtube-player-container').tubeplayer('seek',$('#youtube-player-container').tubeplayer('data').duration)-3"><img src="/static/img/foward.png" /></a>
+            <img src="/static/img/default.jpg" width="36px" height="36px" />
+            <span></span>
+            <div id="time"></div>
+        	<a href="javascript:mute();"><img style="margin:0 0 0 40px;" src="/static/img/mute.png" /></a>
+            <div id="volume"></div>
+        </div>
+    </div>
+
+
+	<div class="mainHeader">
+    	<div class="logo" >
+ 			<a href="/"><img src="/static/img/logo.png" data-src-small="/static/img/logo_s.png" alt="WaterMelOn"></a>
+    	</div>
+    	<div class="header">
+    		<div class=" headerContent" >
+        		<div class="nav" >
+               		<ul>
+                    	{% block sidebar %}
+                        {% endblock %}
+					</ul>
+             	</div>
+	        </div>
+		</div>
+  		<div class="footer">
+		</div>
+	</div> 
+
+    
+	<div id="bodyContent">
+		<div class="contentWarp container">
+    		<div class="pageHolder"></div>        
+		</div>
+	</div>
+
+  	{% block contents %}
+    {% endblock %}
+    
+    <div class="modal hide fade" id="windowTitleDialog">
+        <div class="modal-header">
+            <a href="#" class="close" data-dismiss="modal">&times;</a>
+            <h3>PlayList</h3>
+        </div>
+        <div class="modal-body">
+            <div class="divDialogElements">
+                <select name="name" id="userPlayList">
+                    <option value="nope">===List===</option>
+                    {% for list in lists %}
+                    <option value="{{ list.name }}">{{ list.name }}</option>
+                    {% endfor %}
+                    <option value="new">새로운 리스트 생성 및 추가</option>
+                </select>
+                <input type="text" name="newList" id="newList" />
+                <input type="hidden" name="list" id="list" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn" onclick="closeDialog ();">Cancel</a>
+            <a href="#" class="btn btn-primary" onclick="okClicked ();">OK</a>
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="/static/js/custom.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.vegas.min.js" ></script>   
+    <script type="text/javascript" src="/static/js/jquery.fancybox-1.3.4.min.js"></script>  
+    <script type="text/javascript" src="/static/js/jquery.isotope.min.js" ></script>  
+    <script type="text/javascript" src="/static/js/jquery.flexslider.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.jscrollpane.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.slider.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="/static/js/main-fm.min.js"></script>  
+    <script type="text/javascript" src="/static/js/jquery-ui.js"></script>
+    <script type="text/javascript" src="/static/js/jQuery.tubeplayer.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-modal.js"></script>
+    <script type="text/javascript">
+	var muteFlag = false;
+	function get_length(variable){
+		var length=0;
+		for (element in variable){ 
+			length++; 
+		}
+		return length;
+	}
+
+	function nextSong(){
+		var list = $.cookie('currentlist');
+		list = JSON.parse(list);
+		if (get_length(list) != 0){
+			id = Object.keys(list)[0];
+			description = list[id];
+			if(id.length==36){
+				$.get('/get/id/', {id:id, q:description.replace(' - ',' ')}, function(data){
+					$('#youtube-player-container').tubeplayer('play',data);
+				});
+			}else{
+				$('#youtube-player-container').tubeplayer('play',id);
+			}
+			$('#controller span').html(description);
+			delete list[id];
+			$.cookie('currentlist', JSON.stringify(list));
+		}
+	}
+	function mute(){
+		if(muteFlag == false){
+			$('#controller img').eq(4).attr('src','/static/img/unmute.png');
+			$("#youtube-player-container").tubeplayer('mute');
+			muteFlag = true;
+		}else{
+			$('#controller img').eq(4).attr('src','/static/img/mute.png');
+			$("#youtube-player-container").tubeplayer('unmute');
+			muteFlag = false;
+		}
+	}
+	function pause(){
+		if($('#youtube-player-container').tubeplayer('data')['videoID'] == ""){
+			nextSong()
+		}else{
+			$('#youtube-player-container').tubeplayer('pause');
+		}
+	}
+	function closeDialog () {
+		$('#windowTitleDialog').modal('hide'); 
+	};
+	function okClicked () {
+		var name = $('#userPlayList').val();
+		var list = $('#list').val();
+		if(name=='new'){
+			name = $('#newList').val();
+		}
+		console.log(name);
+		console.log(list);
+		if(name!='nope' && name != ''){
+			$.get('/add/list/', {n:name, l:list}, function(data){
+				if(data == 'must be log in'){
+					alert('로그인을 해주세요.');
+				}else{
+					alert('재생 목록에 추가되었습니다.');
+				}
+			});
+		}
+		closeDialog ();
+	};
+    $(document).ready(function(){
+        var seek;
+        
+        $("#time").slider();
+		$('#volume').slider();
+		$('#volume').slider("option","min",0);
+		$('#volume').slider("option","value",50);
+		$('#volume').slider("option","max",100);
+		
+        function seekSlider(){
+			$('#controller img').eq(1).attr('src', '/static/img/stop.png');
+			$('#controller a').eq(1).attr('href', 'javascript:$("#youtube-player-container").tubeplayer("pause");');
+			var searchValue = $('#controller span').html().replace(' -','');
+			seek =  window.setInterval(function() {
+                            var currentTime = $("#youtube-player-container").tubeplayer("data").currentTime;
+                            $( "#time" ).slider( "option", "value", currentTime );
+                            var endTime = $("#youtube-player-container").tubeplayer("data").duration;
+                            $("#time").slider( "option", "max", endTime);
+                    }, 1000);
+        }
+		
+		function stopMusic(seek){
+			clearInterval(seek);
+			$('#controller img').eq(1).attr('src', '/static/img/play.png');
+			$('#controller a').eq(1).attr('href', 'javascript:$("#youtube-player-container").tubeplayer("play");');
+		}
+		
+		$("#youtube-player-container").tubeplayer({
+            width: 500, 
+            height: 500,
+            allowFullScreen: "false",
+            initialVideo: "",
+            preferredQuality: "small",
+            onPlay: function(id){seekSlider()},
+            onPause: function(){stopMusic(seek)},
+            onStop: function(){stopMusic(seek)},
+            onSeek: function(time){seekSlider()},
+            onMute: function(){},
+            onUnMute: function(){},
+            onPlayerBuffering: function(){},
+            onPlayerEnded: function(){nextSong()}
+        });
+		
+		$("body").mainFm({
+                pageBackground 	: [	
+                
+                    { src : '/static/img/background/background1.jpg', src_small : '/static/img/background/background1_s.jpg'},															  		
+                ],
+                backgroundOverlay 	: '/static/img/background_overlay.png',
+                homePage : "_=_",
+                pageHolderHeight_desktop : 420,
+                pageHolderHeight_ipad : 380,
+                
+        });
+		
+		$("#time").bind( "slidechange", function(event, ui) {
+            if(typeof(event.originalEvent) != 'undefined'){
+                $("#youtube-player-container").tubeplayer("pause");
+                $("#youtube-player-container").tubeplayer("seek", $(this).slider( "option", "value"));
+                $("#youtube-player-container").tubeplayer("play");
+            }
+        });
+		
+		$("#volume").bind( "slidechange", function(event, ui) {
+            $("#youtube-player-container").tubeplayer("volume", $(this).slider( "option", "value"));
+        });
+		
+		$('#newList').hide();
+		
+		$('#userPlayList').change(function() {
+			if($('#userPlayList').val()=='new'){
+					$('#newList').show();
+			}else{
+					$('#newList').hide();
+			}
+		});
+		
+		{% block scripts %}
+		{% endblock %}
+    });
+    </script>
+<div style="margin-left:-1000px;" id="youtube-player-container"></div></body>         
+</html>

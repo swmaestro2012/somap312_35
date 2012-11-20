@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+	{% block sidebar %}
+    <li><a href="#_=_">Search</a></li>
+    {% if 'logged_in' in session %}
+    {% for list in lists %}
+    <li><a href="/list/?n={{ list.name }}">list - {{ list.name }}</a></li>
+    {% endfor %}
+    <li><a href="/logout/">Logout</a></li>
+    {% else %}
+    <li><a href="/login/">Login</a></li>                                 
+    {% endif %}
+    {% endblock %}
+	{% block contents %}
+    <div class="container">
+		<div class="page" data-id="_=_">
+    		<div class="pgContent" >
+        		<div class="mobile_spacing">
+            		<h1 class="title_light">Search Music</h1>
+        		</div>
+        		<div class="separator_mini">
+            		<ul class="tabs">
+                		<li><a href="#track" class="active" >Track</a></li>
+                		<li><a href="#artist">Artist</a></li>
+                		<li><a href="#album">Album</a></li>
+            		</ul>
+		            <ul class="tabs-content">
+                		<li id="track" class="active" >
+                    		<div class="seven columns alpha ">
+                        		<div class="mobile_right_spacing">
+                            		<br>
+                          			<form name="contact" action="/search/" method="get" >
+                          				<input type="hidden" name="c" value="track" />
+                                		<input type="text" value="Name" id="name" name="q"  
+                                        onfocus="if(this.value == 'Name') {this.value = '';}"	
+                                    	onblur="if (this.value == '') {this.value = 'Name';}" />
+                                		<hr>                                  
+                                		<button type="submit" class="button alignLeft">Search</button>                                                             
+                            		</form>
+                       			</div>
+                    		</div>
+                		</li>             
+                		<li id="artist">
+                    		<div class="seven columns alpha ">
+                        		<div class="mobile_right_spacing">
+                            		<br>
+                          			<form name="contact" action="/search/" method="get" >
+                          				<input type="hidden" name="c" value="artist" />
+                                		<input type="text" value="Name" id="name" name="q"  
+                                    	onfocus="if(this.value == 'Name') {this.value = '';}"	
+                                    	onblur="if (this.value == '') {this.value = 'Name';}" />
+                                		<hr>                                  
+                                		<button type="submit" class="button alignLeft">Search</button>                                                              
+                            		</form>
+                       			</div>
+                    		</div>
+                		</li>
+                        <li id="album">
+                    		<div class="seven columns alpha ">
+                        		<div class="mobile_right_spacing">
+                            	<br>
+                          		<form name="contact" action="/search/" method="get" >
+                                    <input type="hidden" name="c" value="album" />
+                                    <input type="text" value="Name" id="name" name="q"  
+                                    onfocus="if(this.value == 'Name') {this.value = '';}"	
+                                    onblur="if (this.value == '') {this.value = 'Name';}" />
+	                                <hr>                                  
+    	                            <button type="submit" class="button alignLeft">Search</button>                                                             
+        	                    </form>
+            		           </div>
+                    		</div>
+                		</li>
+                    </ul>
+                </div>
+			</div>
+		</div>
+	</div>
+    {% endblock %}
